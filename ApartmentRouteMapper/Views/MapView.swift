@@ -2,241 +2,232 @@ import SwiftUI
 import MapKit
 
 struct MapView: View {
-    @EnvironmentObject var locationService: LocationService
-    let apartments: [Apartment]
-    @Binding var selectedApartment: Apartment?
-    @Binding var showingRoute: Bool
-    
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
-        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-    )
-    @State private var route: MKRoute?
-    @State private var isCalculatingRoute = false
+    @StateObject private var viewModel = MapViewModel()
+    @State private var showingRouteDetails = false
     
     var body: some View {
-        ZStack {
-            Map(coordinateRegion: $region, interactionModes: .all, showsUserLocation: true, userTrackingMode: .none, annotationItems: apartments) { apartment in
-                MapAnnotation(coordinate: apartment.coordinate) {
-                    ApartmentAnnotationView(
-                        apartment: apartment,
-                        isSelected: selectedApartment?.id == apartment.id
-                    ) {
-                        selectedApartment = apartment
-                        showingRoute = true
+        NavigationStack {
+            ZStack {
+                MapViewRepresentable(
+                    region: $viewModel.region,
+                    apartments: viewModel.apartments,
+                    selectedApartments: viewModel.selectedApartments,
+                    routes: viewModel.mapRoutes,
+                    onApartmentTap: { apartment in
+                        viewModel.toggleApartmentSelection(apartment)
                     }
-                }
-            }
-            .overlay(
-                RouteOverlay(route: route)
-            )
-            .onAppear {
-                updateRegionToUserLocation()
-            }
-            .onChange(of: locationService.userLocation) { _ in
-                updateRegionToUserLocation()
-            }
-            .onChange(of: selectedApartment) { apartment in
-                if let apartment = apartment, showingRoute {
-                    calculateRoute(to: apartment)
-                } else {
-                    route = nil
-                }
-            }
-            .onChange(of: showingRoute) { showing in
-                if !showing {
-                    route = nil
-                    selectedApartment = nil
-                }
-            }
-            
-            // Route control buttons
-            if showingRoute && selectedApartment != nil {
+                )
+                .ignoresSafeArea()
+                
                 VStack {
                     Spacer()
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 12) {
-                            Button(action: {
-                                showingRoute = false
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                                    .background(Color.red)
-                                    .clipShape(Circle())
-                            }
-                            
-                            if isCalculatingRoute {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                                    .scaleEffect(0.8)
-                            }
-                        }
-                        .padding(.trailing, 16)
-                        .padding(.bottom, 100)
-                    }
-                }
-            }
-        }
-    }
-    
-    private func updateRegionToUserLocation() {
-        if let userLocation = locationService.userLocation {
-            withAnimation(.easeInOut(duration: 1.0)) {
-                region = MKCoordinateRegion(
-                    center: userLocation.coordinate,
-                    span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
-                )
-            }
-        }
-    }
-    
-    private func calculateRoute(to apartment: Apartment) {
-        guard let userLocation = locationService.userLocation else { return }
-        
-        isCalculatingRoute = true
-        
-        let request = MKDirections.Request()
-        request.source = MKMapItem(placemark: MKPlacemark(coordinate: userLocation.coordinate))
-        request.destination = MKMapItem(placemark: MKPlacemark(coordinate: apartment.coordinate))
-        request.transportType = .walking
-        
-        let directions = MKDirections(request: request)
-        directions.calculate { response, error in
-            DispatchQueue.main.async {
-                isCalculatingRoute = false
-                
-                if let route = response?.routes.first {
-                    self.route = route
                     
-                    // Adjust map region to show the entire route
-                    let routeRect = route.polyline.boundingMapRect
-                    let region = MKCoordinateRegion(routeRect)
-                    
-                    withAnimation(.easeInOut(duration: 1.0)) {
-                        self.region = MKCoordinateRegion(
-                            center: region.center,
-                            span: MKCoordinateSpan(
-                                latitudeDelta: region.span.latitudeDelta * 1.4,
-                                longitudeDelta: region.span.longitudeDelta * 1.4
-                            )
+                    if !viewModel.selectedApartments.isEmpty {
+                        RouteControlsView(
+                            selectedCount: viewModel.selectedApartments.count,
+                            isCalculating: viewModel.isCalculatingRoute,
+                            onOptimize: {
+                                viewModel.optimizeAndCalculateRoute()
+                            },
+                            onClear: {
+                                viewModel.clearRoute()
+                            },
+                            onShowDetails: {
+                                showingRouteDetails = true
+                            }
                         )
+                        .padding()
                     }
-                } else if let error = error {
-                    print("Route calculation error: \(error.localizedDescription)")
                 }
+            }
+            .navigationTitle("Route Map")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { LocationService.shared.startUpdatingLocation() }) {
+                        Image(systemName: "location")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingRouteDetails) {
+                RouteDetailView(route: viewModel.currentRoute)
+            }
+            .alert("Route Error", isPresented: .constant(viewModel.routeError != nil)) {
+                Button("OK") { viewModel.routeError = nil }
+            } message: {
+                Text(viewModel.routeError?.localizedDescription ?? "")
             }
         }
     }
 }
 
-struct ApartmentAnnotationView: View {
-    let apartment: Apartment
-    let isSelected: Bool
-    let onTap: () -> Void
+struct RouteControlsView: View {
+    let selectedCount: Int
+    let isCalculating: Bool
+    let onOptimize: () -> Void
+    let onClear: () -> Void
+    let onShowDetails: () -> Void
     
     var body: some View {
-        VStack(spacing: 0) {
-            Button(action: onTap) {
-                ZStack {
-                    Circle()
-                        .fill(isSelected ? Color.red : Color.blue)
-                        .frame(width: 30, height: 30)
-                    
-                    Text("$\(apartment.price / 100)K")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .minimumScaleFactor(0.5)
-                }
+        VStack(spacing: 12) {
+            HStack {
+                Text("\(selectedCount) apartments selected")
+                    .font(.headline)
+                Spacer()
+                Button("Clear", action: onClear)
+                    .foregroundColor(.red)
             }
-            .buttonStyle(PlainButtonStyle())
             
-            if isSelected {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(apartment.name)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Text("\(apartment.bedrooms)br/\(apartment.bathrooms)ba")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if let walkingTime = apartment.walkingTimeMinutes {
-                        Text("\(walkingTime) min walk")
-                            .font(.caption2)
-                            .foregroundColor(.blue)
+            HStack(spacing: 16) {
+                Button(action: onOptimize) {
+                    if isCalculating {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("Optimize Route")
                     }
                 }
-                .padding(8)
-                .background(Color(.systemBackground))
-                .cornerRadius(8)
-                .shadow(radius: 4)
+                .buttonStyle(.borderedProminent)
+                .disabled(isCalculating)
+                
+                Button("View Details", action: onShowDetails)
+                    .buttonStyle(.bordered)
             }
         }
+        .padding()
+        .background(.regularMaterial)
+        .cornerRadius(16)
     }
 }
 
-struct RouteOverlay: View {
-    let route: MKRoute?
-    
-    var body: some View {
-        if let route = route {
-            MapOverlay(route: route)
-        }
-    }
-}
-
-struct MapOverlay: UIViewRepresentable {
-    let route: MKRoute
+// MARK: - MapKit UIViewRepresentable
+struct MapViewRepresentable: UIViewRepresentable {
+    @Binding var region: MKCoordinateRegion
+    let apartments: [Apartment]
+    let selectedApartments: Set<UUID>
+    let routes: [MKRoute]
+    let onApartmentTap: (Apartment) -> Void
     
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
+        mapView.showsUserLocation = true
+        mapView.showsCompass = true
+        mapView.showsScale = true
         return mapView
     }
     
     func updateUIView(_ mapView: MKMapView, context: Context) {
+        // Update region
+        if !mapView.region.isEqual(region) {
+            mapView.setRegion(region, animated: true)
+        }
+        
+        // Update annotations
+        mapView.removeAnnotations(mapView.annotations)
+        let annotations = apartments.map { apartment in
+            ApartmentAnnotation(
+                apartment: apartment,
+                isSelected: selectedApartments.contains(apartment.id)
+            )
+        }
+        mapView.addAnnotations(annotations)
+        
+        // Update routes
         mapView.removeOverlays(mapView.overlays)
-        mapView.addOverlay(route.polyline)
+        routes.forEach { route in
+            mapView.addOverlay(route.polyline, level: .aboveRoads)
+        }
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(self)
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
+        var parent: MapViewRepresentable
+        
+        init(_ parent: MapViewRepresentable) {
+            self.parent = parent
+        }
+        
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            guard let apartmentAnnotation = annotation as? ApartmentAnnotation else {
+                return nil
+            }
+            
+            let identifier = "ApartmentAnnotation"
+            let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
+                ?? MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            
+            annotationView.canShowCallout = true
+            annotationView.markerTintColor = apartmentAnnotation.isSelected ? .systemBlue : .systemRed
+            annotationView.glyphImage = UIImage(systemName: "building.2")
+            
+            return annotationView
+        }
+        
+        func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+            guard let apartmentAnnotation = view.annotation as? ApartmentAnnotation else {
+                return
+            }
+            parent.onApartmentTap(apartmentAnnotation.apartment)
+            mapView.deselectAnnotation(apartmentAnnotation, animated: true)
+        }
+        
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-            if overlay is MKPolyline {
-                let renderer = MKPolylineRenderer(overlay: overlay)
+            if let polyline = overlay as? MKPolyline {
+                let renderer = MKPolylineRenderer(polyline: polyline)
                 renderer.strokeColor = .systemBlue
                 renderer.lineWidth = 4
                 return renderer
             }
-            return MKOverlayRenderer()
+            return MKOverlayRenderer(overlay: overlay)
+        }
+        
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+            parent.region = mapView.region
         }
     }
 }
 
-#Preview {
-    MapView(
-        apartments: [
-            Apartment(
-                id: UUID(),
-                name: "Sample Apartment",
-                address: "123 Main St",
-                coordinate: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
-                price: 2800,
-                bedrooms: 2,
-                bathrooms: 1,
-                imageURL: nil,
-                amenities: ["Pool", "Gym"],
-                walkingTimeMinutes: 10
-            )
-        ],
-        selectedApartment: .constant(nil),
-        showingRoute: .constant(false)
-    )
-    .environmentObject(LocationService())
+// MARK: - Custom Annotation
+class ApartmentAnnotation: NSObject, MKAnnotation {
+    let apartment: Apartment
+    let isSelected: Bool
+    
+    var coordinate: CLLocationCoordinate2D {
+        apartment.coordinate
+    }
+    
+    var title: String? {
+        apartment.name
+    }
+    
+    var subtitle: String? {
+        apartment.address
+    }
+    
+    init(apartment: Apartment, isSelected: Bool) {
+        self.apartment = apartment
+        self.isSelected = isSelected
+        super.init()
+    }
+}
+
+// MARK: - Helper Extensions
+extension MKCoordinateRegion: Equatable {
+    public static func == (lhs: MKCoordinateRegion, rhs: MKCoordinateRegion) -> Bool {
+        lhs.center.latitude == rhs.center.latitude &&
+        lhs.center.longitude == rhs.center.longitude &&
+        lhs.span.latitudeDelta == rhs.span.latitudeDelta &&
+        lhs.span.longitudeDelta == rhs.span.longitudeDelta
+    }
+    
+    func isEqual(_ other: MKCoordinateRegion) -> Bool {
+        abs(center.latitude - other.center.latitude) < 0.00001 &&
+        abs(center.longitude - other.center.longitude) < 0.00001 &&
+        abs(span.latitudeDelta - other.span.latitudeDelta) < 0.00001 &&
+        abs(span.longitudeDelta - other.span.longitudeDelta) < 0.00001
+    }
 }

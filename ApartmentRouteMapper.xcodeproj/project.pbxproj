@@ -24,7 +24,18 @@
 		1A00002C /* RouteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00002D /* RouteDetailView.swift */; };
 		1A00002E /* RouteListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00002F /* RouteListView.swift */; };
 		1A000030 /* ApartmentRouteMapper.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1A000031 /* ApartmentRouteMapper.xcdatamodeld */; };
+		1A000070 /* RouteOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A000071 /* RouteOptimizationTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1A000072 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A000050 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A000040;
+			remoteInfo = ApartmentRouteMapper;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		1A000011 /* ApartmentRouteMapper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ApartmentRouteMapper.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -46,10 +57,19 @@
 		1A00002D /* RouteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteDetailView.swift; sourceTree = "<group>"; };
 		1A00002F /* RouteListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteListView.swift; sourceTree = "<group>"; };
 		1A000031 /* ApartmentRouteMapper.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodeld; path = ApartmentRouteMapper.xcdatamodeld; sourceTree = "<group>"; };
+		1A000070 /* ApartmentRouteMapperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ApartmentRouteMapperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A000071 /* RouteOptimizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteOptimizationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		1A000013 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A000073 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -63,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				1A000015 /* ApartmentRouteMapper */,
+				1A000074 /* ApartmentRouteMapperTests */,
 				1A000016 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,6 +92,7 @@
 			isa = PBXGroup;
 			children = (
 				1A000011 /* ApartmentRouteMapper.app */,
+				1A000070 /* ApartmentRouteMapperTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -140,6 +162,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		1A000074 /* ApartmentRouteMapperTests */ = {
+			isa = PBXGroup;
+			children = (
+				1A000071 /* RouteOptimizationTests.swift */,
+			);
+			path = ApartmentRouteMapperTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -160,6 +190,24 @@
 			productReference = 1A000011 /* ApartmentRouteMapper.app */;
 			productType = "com.apple.product-type.application";
 		};
+		1A000075 /* ApartmentRouteMapperTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A000076 /* Build configuration list for PBXNativeTarget "ApartmentRouteMapperTests" */;
+			buildPhases = (
+				1A000077 /* Sources */,
+				1A000073 /* Frameworks */,
+				1A000078 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1A000079 /* PBXTargetDependency */,
+			);
+			name = ApartmentRouteMapperTests;
+			productName = ApartmentRouteMapperTests;
+			productReference = 1A000070 /* ApartmentRouteMapperTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -172,6 +220,10 @@
 				TargetAttributes = {
 					1A000040 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					1A000075 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = 1A000040;
 					};
 				};
 			};
@@ -189,6 +241,7 @@
 			projectRoot = "";
 			targets = (
 				1A000040 /* ApartmentRouteMapper */,
+				1A000075 /* ApartmentRouteMapperTests */,
 			);
 		};
 /* End PBXProject section */
@@ -200,6 +253,13 @@
 			files = (
 				1A00000F /* Preview Assets.xcassets in Resources */,
 				1A00000D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A000078 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -228,7 +288,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1A000077 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A000070 /* RouteOptimizationTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1A000079 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A000040 /* ApartmentRouteMapper */;
+			targetProxy = 1A000072 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1A000060 /* Debug */ = {
@@ -411,6 +487,54 @@
 			};
 			name = Release;
 		};
+		1A000080 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apartment.routemapper.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ApartmentRouteMapper.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ApartmentRouteMapper";
+			};
+			name = Debug;
+		};
+		1A000081 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apartment.routemapper.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ApartmentRouteMapper.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ApartmentRouteMapper";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -428,6 +552,15 @@
 			buildConfigurations = (
 				1A000062 /* Debug */,
 				1A000063 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A000076 /* Build configuration list for PBXNativeTarget "ApartmentRouteMapperTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A000080 /* Debug */,
+				1A000081 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,0 +1,56 @@
+Fix Xcode project structure and restore project.pbxproj
+
+## Summary
+Completely restructured the iOS project to eliminate triple-nested directories and restore proper Xcode project configuration for successful building on macOS.
+
+## Changes Made
+
+### Directory Structure Fixes
+- Eliminated triple-nested ApartmentRouteMapper/ApartmentRouteMapper/ApartmentRouteMapper structure
+- Reorganized to standard Xcode project layout with single nesting level
+- Moved all Swift source files to correct locations maintaining folder organization
+
+### Project File Restoration
+- Created new comprehensive project.pbxproj file from scratch
+- Added all 14 Swift source files with correct relative paths:
+  - Root: ApartmentRouteMapperApp.swift, ContentView.swift
+  - Models/: Apartment.swift, Route.swift
+  - Views/: MapView.swift, ApartmentListView.swift, AddressSearchView.swift, RouteDetailView.swift, RouteListView.swift
+  - ViewModels/: ApartmentListViewModel.swift, MapViewModel.swift
+  - Services/: LocationService.swift, CoreDataService.swift, RouteOptimizationService.swift
+- Restored test target with RouteOptimizationTests.swift
+
+### Build Configuration
+- Configured for iOS 17.0 deployment target
+- Set Swift 5.0 language version
+- Added proper build phases for sources and resources
+- Configured test target with proper dependencies
+- Set up Info.plist with location permissions
+- Added Core Data model references
+
+### File Organization
+- 14 source files properly organized in subdirectories
+- 1 test file in ApartmentRouteMapperTests/
+- Assets.xcassets and Preview Content correctly placed
+- Info.plist at proper location with required keys
+
+## Files Affected
+- ApartmentRouteMapper.xcodeproj/project.pbxproj (recreated)
+- All Swift files relocated to proper directory structure
+- Removed redundant nested directories
+- Cleaned up duplicate project files
+
+## Testing Notes
+- Project should now open successfully in Xcode on macOS
+- Development Team needs to be set in Signing & Capabilities
+- All files are properly referenced and should compile
+- Test target is configured and ready to run
+
+## Technical Details
+- Bundle ID: com.apartment.routemapper
+- Supports iPhone and iPad (Universal)
+- Includes location services for apartment mapping
+- Core Data persistence for route storage
+- TSP algorithm implementation for route optimization
+
+This restructuring ensures the project follows standard iOS/Xcode conventions and can be successfully built and deployed from any macOS development environment.
